@@ -1,0 +1,106 @@
+{
+  "invalidBookingData": [
+    {
+      "description": "Missing required fields",
+      "data": {
+        "firstname": "John",
+        "lastname": "Doe"
+      },
+      "expectedStatusCode": 400
+    },
+    {
+      "description": "Invalid date format",
+      "data": {
+        "firstname": "John",
+        "lastname": "Doe",
+        "totalprice": 100,
+        "depositpaid": true,
+        "bookingdates": {
+          "checkin": "invalid-date",
+          "checkout": "2024-12-31"
+        },
+        "additionalneeds": "Breakfast"
+      },
+      "expectedStatusCode": 400
+    },
+    {
+      "description": "Invalid price value",
+      "data": {
+        "firstname": "John",
+        "lastname": "Doe",
+        "totalprice": -100,
+        "depositpaid": true,
+        "bookingdates": {
+          "checkin": "2024-01-01",
+          "checkout": "2024-12-31"
+        },
+        "additionalneeds": "Breakfast"
+      },
+      "expectedStatusCode": 400
+    }
+  ],
+  "edgeCaseData": [
+    {
+      "description": "Very long string values",
+      "data": {
+        "firstname": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+        "lastname": "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+        "totalprice": 100,
+        "depositpaid": true,
+        "bookingdates": {
+          "checkin": "2024-01-01",
+          "checkout": "2024-12-31"
+        },
+        "additionalneeds": "CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC"
+      },
+      "expectedStatusCode": 400
+    },
+    {
+      "description": "Checkout date before checkin date",
+      "data": {
+        "firstname": "John",
+        "lastname": "Doe",
+        "totalprice": 100,
+        "depositpaid": true,
+        "bookingdates": {
+          "checkin": "2024-12-31",
+          "checkout": "2024-01-01"
+        },
+        "additionalneeds": "Breakfast"
+      },
+      "expectedStatusCode": 400
+    }
+  ],
+  "securityTestData": [
+    {
+      "description": "XSS attempt in firstname",
+      "data": {
+        "firstname": "<script>alert('xss')</script>",
+        "lastname": "Doe",
+        "totalprice": 100,
+        "depositpaid": true,
+        "bookingdates": {
+          "checkin": "2024-01-01",
+          "checkout": "2024-12-31"
+        },
+        "additionalneeds": "Breakfast"
+      },
+      "expectedStatusCode": 400
+    },
+    {
+      "description": "SQL injection attempt in lastname",
+      "data": {
+        "firstname": "John",
+        "lastname": "' OR '1'='1",
+        "totalprice": 100,
+        "depositpaid": true,
+        "bookingdates": {
+          "checkin": "2024-01-01",
+          "checkout": "2024-12-31"
+        },
+        "additionalneeds": "Breakfast"
+      },
+      "expectedStatusCode": 400
+    }
+  ]
+} 

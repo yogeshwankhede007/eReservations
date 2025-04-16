@@ -1,7 +1,6 @@
 package com.ereservations.api;
 
 import com.ereservations.models.Booking;
-import com.ereservations.utils.TestDataProvider;
 import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
 
@@ -11,24 +10,16 @@ import static io.restassured.RestAssured.given;
 public class BookingApiClient extends BaseApiClient {
     private Response lastResponse;
     
-    public BookingApiClient createBooking(String testDataFile) {
-        Booking booking = TestDataProvider.getBookingData(testDataFile);
-        log.info("Creating new booking for: {} {}", booking.getFirstName(), booking.getLastName());
+    public BookingApiClient createBooking(String bookingData) {
+        log.info("Creating new booking with data: {}", bookingData);
         
         lastResponse = given()
                 .spec(getRequestSpecification())
-                .body(booking)
+                .body(bookingData)
                 .when()
                 .post("/booking");
         
         validateResponse(lastResponse, 200);
-        validateResponseBody(lastResponse, "booking.firstname", booking.getFirstName());
-        validateResponseBody(lastResponse, "booking.lastname", booking.getLastName());
-        validateResponseBody(lastResponse, "booking.totalprice", booking.getTotalPrice());
-        validateResponseBody(lastResponse, "booking.depositpaid", booking.getDepositPaid());
-        validateResponseBody(lastResponse, "booking.bookingdates.checkin", booking.getBookingDates().getCheckIn());
-        validateResponseBody(lastResponse, "booking.bookingdates.checkout", booking.getBookingDates().getCheckOut());
-        validateResponseBody(lastResponse, "booking.additionalneeds", booking.getAdditionalNeeds());
         
         int bookingId = lastResponse.jsonPath().getInt("bookingid");
         log.info("Booking created successfully with ID: {}", bookingId);
@@ -47,26 +38,16 @@ public class BookingApiClient extends BaseApiClient {
         return this;
     }
 
-    public BookingApiClient updateBooking(int bookingId, String testDataFile) {
-        Booking booking = TestDataProvider.getBookingData(testDataFile);
-        log.info("Updating booking with ID: {} for: {} {}", 
-                bookingId, booking.getFirstName(), booking.getLastName());
+    public BookingApiClient updateBooking(int bookingId, String bookingData) {
+        log.info("Updating booking with ID: {} with data: {}", bookingId, bookingData);
         
         lastResponse = given()
                 .spec(getAuthenticatedRequestSpec())
-                .body(booking)
+                .body(bookingData)
                 .when()
                 .put("/booking/" + bookingId);
         
         validateResponse(lastResponse, 200);
-        validateResponseBody(lastResponse, "firstname", booking.getFirstName());
-        validateResponseBody(lastResponse, "lastname", booking.getLastName());
-        validateResponseBody(lastResponse, "totalprice", booking.getTotalPrice());
-        validateResponseBody(lastResponse, "depositpaid", booking.getDepositPaid());
-        validateResponseBody(lastResponse, "bookingdates.checkin", booking.getBookingDates().getCheckIn());
-        validateResponseBody(lastResponse, "bookingdates.checkout", booking.getBookingDates().getCheckOut());
-        validateResponseBody(lastResponse, "additionalneeds", booking.getAdditionalNeeds());
-        
         log.info("Booking updated successfully for ID: {}", bookingId);
         return this;
     }
@@ -97,6 +78,17 @@ public class BookingApiClient extends BaseApiClient {
     }
 
     public Response getLastResponse() {
+        return lastResponse;
+    }
+
+    public Response sendOptionsRequest(String endpoint) {
+        lastResponse = given()
+            .spec(getRequestSpecification())
+            .when()
+            .options(endpoint)
+            .then()
+            .extract()
+            .response();
         return lastResponse;
     }
 

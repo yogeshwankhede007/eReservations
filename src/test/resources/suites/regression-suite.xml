@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<suite name="Restful Booker Regression Test Suite" parallel="tests" thread-count="3">
+    <test name="Positive API Tests">
+        <classes>
+            <class name="com.ereservations.tests.BookingApiTest">
+                <methods>
+                    <include name="testCreateBooking"/>
+                    <include name="testGetBookingIds"/>
+                    <include name="testUpdateBooking"/>
+                    <include name="testDeleteBooking"/>
+                </methods>
+            </class>
+        </classes>
+    </test>
+    <test name="Negative Tests">
+        <groups>
+            <run>
+                <include name="negative"/>
+            </run>
+        </groups>
+        <classes>
+            <class name="com.ereservations.tests.BookingApiTest">
+                <methods>
+                    <include name="testInvalidBookingData"/>
+                    <include name="testEdgeCases"/>
+                </methods>
+            </class>
+            <class name="com.ereservations.tests.BookingApiNegativeTest">
+                <methods>
+                    <include name="testInvalidBookingData"/>
+                    <include name="testEdgeCases"/>
+                </methods>
+            </class>
+        </classes>
+    </test>
+    <test name="Security Tests">
+        <groups>
+            <run>
+                <include name="security"/>
+            </run>
+        </groups>
+        <classes>
+            <class name="com.ereservations.tests.BookingApiTest">
+                <methods>
+                    <include name="testSecurityScenarios"/>
+                </methods>
+            </class>
+            <class name="com.ereservations.tests.BookingApiNegativeTest">
+                <methods>
+                    <include name="testSecurityCases"/>
+                </methods>
+            </class>
+        </classes>
+    </test>
+    <listeners>
+        <listener class-name="io.qameta.allure.testng.AllureTestNg"/>
+    </listeners>
+</suite> 

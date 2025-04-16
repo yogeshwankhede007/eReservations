@@ -1,14 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
-<suite name="Restful Booker Test Suite" parallel="methods" thread-count="2">
+<suite name="Restful Booker Test Suite" parallel="tests" thread-count="2">
     <test name="System API Tests">
         <classes>
             <class name="com.ereservations.tests.SystemApiTest"/>
         </classes>
     </test>
-    <test name="Booking API Tests">
+    <test name="Booking API Positive Tests">
         <classes>
             <class name="com.ereservations.tests.BookingApiTest"/>
+        </classes>
+    </test>
+    <test name="Booking API Negative Tests">
+        <classes>
+            <class name="com.ereservations.tests.BookingApiNegativeTest"/>
         </classes>
     </test>
     <listeners>
