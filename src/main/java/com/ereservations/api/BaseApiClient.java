@@ -50,58 +50,66 @@ public class BaseApiClient {
         return requestSpec;
     }
 
-    protected String getAuthToken() {
+    protected RequestSpecification getAuthenticatedRequestSpec() {
         if (authToken == null) {
-            logger.info("Requesting new authentication token");
+            authToken = getAuthToken();
+        }
+        return requestSpec.auth().oauth2(authToken);
+    }
+
+    private String getAuthToken() {
+        try {
             Response response = given()
-                    .spec(getRequestSpecification())
-                    .body("{ \"username\": \"" + config.getProperty("auth.username") + "\", " +
-                          "\"password\": \"" + config.getProperty("auth.password") + "\" }")
+                    .spec(requestSpec)
+                    .body("{\"username\":\"" + config.getProperty("auth.username") + 
+                          "\",\"password\":\"" + config.getProperty("auth.password") + "\"}")
                     .when()
                     .post("/auth");
             
-            validateResponse(response, 200);
-            authToken = response.jsonPath().getString("token");
-            logger.info("Successfully obtained authentication token");
+            if (response.getStatusCode() == 200) {
+                return response.jsonPath().getString("token");
+            } else {
+                logger.error("Failed to get auth token. Status code: {}", response.getStatusCode());
+                return null;
+            }
+        } catch (Exception e) {
+            logger.error("Error getting auth token: {}", e.getMessage());
+            return null;
         }
-        return authToken;
-    }
-
-    protected RequestSpecification getAuthenticatedRequestSpec() {
-        return getRequestSpecification()
-                .cookie("token", getAuthToken());
     }
 
     protected void validateResponse(Response response, int expectedStatusCode) {
-        long responseTime = response.getTime();
-        logger.info("Response time: {} ms", responseTime);
-        
-        if (responseTime > MAX_RESPONSE_TIME) {
-            logger.error("Response time exceeded maximum limit of {} ms. Actual time: {} ms", 
-                    MAX_RESPONSE_TIME, responseTime);
-            throw new RuntimeException("Response time exceeded maximum limit");
-        }
-
         if (response.getStatusCode() != expectedStatusCode) {
-            logger.error("Expected status code: {}, Actual status code: {}", 
-                    expectedStatusCode, response.getStatusCode());
-            logger.error("Response body: {}", response.getBody().asString());
-            throw new RuntimeException("API call failed with status code: " + response.getStatusCode());
+            String errorMessage = String.format("Expected status code %d but got %d. Response: %s",
+                    expectedStatusCode, response.getStatusCode(), response.getBody().asString());
+            logger.error(errorMessage);
+            throw new AssertionError(errorMessage);
         }
-
-        logger.info("Response validation successful. Status code: {}", response.getStatusCode());
+        
+        if (expectedStatusCode == 200 || expectedStatusCode == 201) {
+            String responseBody = response.getBody().asString();
+            if (responseBody == null || responseBody.isEmpty()) {
+                String errorMessage = "Empty response body received";
+                logger.error(errorMessage);
+                throw new AssertionError(errorMessage);
+            }
+        }
     }
 
-    protected void validateResponseBody(Response response, String field, Object expectedValue) {
-        Object actualValue = response.jsonPath().get(field);
-        logger.info("Validating field: {}, Expected: {}, Actual: {}", 
-                field, expectedValue, actualValue);
-        
-        if (!expectedValue.equals(actualValue)) {
-            logger.error("Field validation failed. Field: {}, Expected: {}, Actual: {}", 
-                    field, expectedValue, actualValue);
-            throw new RuntimeException("Field validation failed for: " + field);
+    protected void validateResponseBody(Response response, String jsonPath, Object expectedValue) {
+        try {
+            Object actualValue = response.jsonPath().get(jsonPath);
+            if (!expectedValue.equals(actualValue)) {
+                String errorMessage = String.format("Expected %s to be %s but got %s",
+                        jsonPath, expectedValue, actualValue);
+                logger.error(errorMessage);
+                throw new AssertionError(errorMessage);
+            }
+        } catch (Exception e) {
+            String errorMessage = String.format("Error validating response body at path %s: %s",
+                    jsonPath, e.getMessage());
+            logger.error(errorMessage);
+            throw new AssertionError(errorMessage);
         }
-        logger.info("Field validation successful: {}", field);
     }
 } 

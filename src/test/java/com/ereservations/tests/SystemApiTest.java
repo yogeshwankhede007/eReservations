@@ -12,6 +12,8 @@ import io.restassured.response.Response;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import static org.testng.Assert.fail;
+
 public class SystemApiTest {
     private PingApiClient pingApiClient;
     private HealthCheckApiClient healthCheckApiClient;
@@ -27,7 +29,13 @@ public class SystemApiTest {
     @Severity(SeverityLevel.CRITICAL)
     @Story("System Health")
     public void testPing() {
-        executePing();
+        try {
+            executePing();
+        } catch (AssertionError e) {
+            ReportUtils.addStepToReport("Ping API", io.qameta.allure.model.Status.FAILED,
+                    "API ping failed: " + e.getMessage());
+            fail("Ping test failed: " + e.getMessage());
+        }
     }
 
     @Step("Check API availability")
@@ -35,7 +43,9 @@ public class SystemApiTest {
         Response response = pingApiClient.ping().getLastResponse();
         ReportUtils.addStepToReport("Ping API", io.qameta.allure.model.Status.PASSED,
                 "API is available and responding");
+        ReportUtils.attachText("Request Details", "GET /ping");
         ReportUtils.attachText("Response Body", response.getBody().asString());
+        ReportUtils.attachText("Response Headers", response.getHeaders().toString());
     }
 
     @Test
@@ -43,7 +53,13 @@ public class SystemApiTest {
     @Severity(SeverityLevel.CRITICAL)
     @Story("System Health")
     public void testHealthCheck() {
-        executeHealthCheck();
+        try {
+            executeHealthCheck();
+        } catch (AssertionError e) {
+            ReportUtils.addStepToReport("Health Check", io.qameta.allure.model.Status.FAILED,
+                    "Health check failed: " + e.getMessage());
+            fail("Health check test failed: " + e.getMessage());
+        }
     }
 
     @Step("Check API health status")
@@ -51,6 +67,8 @@ public class SystemApiTest {
         Response response = healthCheckApiClient.checkHealth().getLastResponse();
         ReportUtils.addStepToReport("Health Check", io.qameta.allure.model.Status.PASSED,
                 "API health check passed");
+        ReportUtils.attachText("Request Details", "GET /health");
         ReportUtils.attachText("Response Body", response.getBody().asString());
+        ReportUtils.attachText("Response Headers", response.getHeaders().toString());
     }
 } 
