@@ -1,8 +1,8 @@
 # eReservations - Enterprise Travel Booking System
 
 ![eReservations Logo](https://img.shields.io/badge/eReservations-Enterprise%20Travel-blue?style=for-the-badge)
-[![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg?style=flat)](https://github.com/yourusername/eReservations)
-[![Test Coverage](https://img.shields.io/badge/coverage-95%25-brightgreen.svg?style=flat)](https://github.com/yourusername/eReservations)
+[![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg?style=flat)](https://github.com/yogeshwankhede007/eReservations)
+[![Test Coverage](https://img.shields.io/badge/coverage-95%25-brightgreen.svg?style=flat)](https://github.com/yogeshwankhede007/eReservations)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat)](LICENSE)
 
 ## 🌟 Overview
@@ -12,7 +12,7 @@ eReservations is a state-of-the-art travel booking automation framework designed
 ### 🎯 Key Features
 
 - **Comprehensive API Testing**: End-to-end testing of booking workflows
-- **Real-time Reporting**: Detailed Allure reports with test execution insights
+- **ChainTest Reporting**: Detailed test execution insights with ChainTest framework
 - **Data-Driven Testing**: External test data management for flexible testing scenarios
 - **Parallel Execution**: Optimized test execution with multi-threading support
 - **Authentication Management**: Secure token-based authentication handling
@@ -25,7 +25,7 @@ eReservations is a state-of-the-art travel booking automation framework designed
 - **Java 11**: Core programming language
 - **TestNG**: Test automation framework
 - **REST Assured**: API testing library
-- **Allure**: Test reporting framework
+- **ChainTest**: Test reporting framework
 - **Maven**: Build and dependency management
 - **Lombok**: Boilerplate code reduction
 - **SLF4J**: Logging framework
@@ -35,13 +35,13 @@ eReservations is a state-of-the-art travel booking automation framework designed
 
 - Java 11 or higher
 - Maven 3.6.3 or higher
-- Allure Command Line Tool
+- ChainTest Framework
 
 ## 🛠️ Setup & Installation
 
 1. **Clone the Repository**
    ```bash
-   git clone https://github.com/yourusername/eReservations.git
+   git clone https://github.com/yogeshwankhede007/eReservations.git
    cd eReservations
    ```
 
@@ -72,12 +72,12 @@ mvn test -DsuiteXmlFile=src/test/resources/testng.xml
 
 ### Generating Reports
 ```bash
-allure serve target/allure-results
+mvn chaintest:report
 ```
 
 ## 📊 Test Reports
 
-The framework generates detailed Allure reports including:
+The framework generates detailed ChainTest reports including:
 - Test execution statistics
 - Step-by-step test execution details
 - Request/Response logs
@@ -112,8 +112,15 @@ eReservations/
 
 ## 🔄 Recent Updates
 
+### Version 1.2.0
+- Replaced Allure reporting with ChainTest framework
+- Updated codebase to comply with SonarCloud code scanning standards
+- Enhanced error handling and logging mechanisms
+- Improved test execution performance
+- Implemented strict code quality checks
+
 ### Version 1.1.0
-- Enhanced Allure reporting with improved attachment handling
+- Enhanced reporting with improved attachment handling
 - Added comprehensive negative test scenarios
 - Implemented security testing capabilities
 - Fixed JSON parsing issues in test data
@@ -122,7 +129,7 @@ eReservations/
 
 ### Version 1.0.0
 - Initial release with basic booking API testing
-- Basic Allure reporting integration
+- Basic reporting integration
 - Core API client implementation
 - Basic test data management
 
@@ -138,17 +145,13 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## 📝 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
 ## 🌐 Support
 
 For support and queries, please contact:
-- Email: support@ereservations.com
-- Documentation: [docs.ereservations.com](https://docs.ereservations.com)
-- Issue Tracker: [GitHub Issues](https://github.com/yourusername/eReservations/issues)
+- Email: yogi.wankhede007@gmail.com
+- Documentation: [docs.ereservations.com](https://restful-booker.herokuapp.com/apidoc/index.html#api-Ping)
+- Issue Tracker: [GitHub Issues](https://github.com/yogeshwankhede007/eReservations/issues)
 
 ---
 
-<p align="center">Made with ❤️ by eReservations Team</p> 
+<p align="center">Made with ❤️ by Yogesh W.</p>
