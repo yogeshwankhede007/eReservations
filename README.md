@@ -17,6 +17,8 @@ eReservations is a state-of-the-art travel booking automation framework designed
 - **Parallel Execution**: Optimized test execution with multi-threading support
 - **Authentication Management**: Secure token-based authentication handling
 - **Logging & Monitoring**: Detailed logging with request/response tracking
+- **Negative Testing**: Comprehensive validation of error scenarios
+- **Security Testing**: Built-in security testing capabilities
 
 ## 🚀 Technology Stack
 
@@ -27,6 +29,7 @@ eReservations is a state-of-the-art travel booking automation framework designed
 - **Maven**: Build and dependency management
 - **Lombok**: Boilerplate code reduction
 - **SLF4J**: Logging framework
+- **Jackson**: JSON processing library
 
 ## 📋 Prerequisites
 
@@ -59,17 +62,17 @@ eReservations is a state-of-the-art travel booking automation framework designed
 
 ### Running All Tests
 ```bash
-./scripts/run-tests.sh
+mvn clean test
 ```
 
 ### Running Specific Test Suites
 ```bash
-./scripts/run-tests.sh -r src/test/resources/test-suites/booking-tests.xml
+mvn test -DsuiteXmlFile=src/test/resources/testng.xml
 ```
 
 ### Generating Reports
 ```bash
-./scripts/generate-report.sh
+allure serve target/allure-results
 ```
 
 ## 📊 Test Reports
@@ -80,6 +83,8 @@ The framework generates detailed Allure reports including:
 - Request/Response logs
 - Test execution timeline
 - Environment details
+- Negative test results
+- Security test findings
 
 ## 🏗️ Project Structure
 
@@ -95,37 +100,42 @@ eReservations/
 │   │   └── resources/
 │   └── test/
 │       ├── java/
-│       │   └── com/ereservations/tests/
+│       │   └── com/ereservations/
+│       │       ├── tests/
+│       │       └── utils/
 │       └── resources/
 │           ├── test-data/
-│           └── test-suites/
-├── scripts/
-├── pom.xml
-└── README.md
+│           │   ├── negative-test-data.json
+│           │   └── positive-test-data.json
+│           └── testng.xml
 ```
 
-## 🔄 CI/CD Integration
+## 🔄 Recent Updates
 
-The framework is designed to integrate seamlessly with popular CI/CD platforms:
-- Jenkins
-- GitHub Actions
-- Azure DevOps
-- GitLab CI
+### Version 1.1.0
+- Enhanced Allure reporting with improved attachment handling
+- Added comprehensive negative test scenarios
+- Implemented security testing capabilities
+- Fixed JSON parsing issues in test data
+- Improved error handling and logging
+- Updated test execution configuration
 
-## 📈 Best Practices
+### Version 1.0.0
+- Initial release with basic booking API testing
+- Basic Allure reporting integration
+- Core API client implementation
+- Basic test data management
 
-- **Data Management**: Test data is externalized in JSON files
-- **Configuration**: Environment-specific configs in properties files
-- **Logging**: Comprehensive logging for debugging
-- **Reporting**: Detailed Allure reports for test execution analysis
-- **Modularity**: Reusable components and utilities
+## 📝 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 🤝 Contributing
 
 1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
 ## 📝 License

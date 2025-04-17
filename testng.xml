@@ -6,17 +6,13 @@
             <class name="com.ereservations.tests.SystemApiTest"/>
         </classes>
     </test>
-    <test name="Booking API Positive Tests">
+    <test name="Booking API Tests">
         <classes>
             <class name="com.ereservations.tests.BookingApiTest"/>
-        </classes>
-    </test>
-    <test name="Booking API Negative Tests">
-        <classes>
-            <class name="com.ereservations.tests.BookingApiNegativeTest"/>
+            <class name="com.ereservations.tests.BookingNegativeTest"/>
         </classes>
     </test>
     <listeners>
-        <listener class-name="io.qameta.allure.testng.AllureTestNg"/>
+        <listener class-name="com.ereservations.listeners.TestChainListener"/>
     </listeners>
 </suite> 

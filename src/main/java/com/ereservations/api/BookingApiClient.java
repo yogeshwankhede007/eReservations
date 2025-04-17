@@ -1,6 +1,7 @@
 package com.ereservations.api;
 
 import com.ereservations.models.Booking;
+import com.fasterxml.jackson.databind.JsonNode;
 import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
 
@@ -10,12 +11,12 @@ import static io.restassured.RestAssured.given;
 public class BookingApiClient extends BaseApiClient {
     private Response lastResponse;
     
-    public BookingApiClient createBooking(String bookingData) {
+    public BookingApiClient createBooking(JsonNode bookingData) {
         log.info("Creating new booking with data: {}", bookingData);
         
         lastResponse = given()
                 .spec(getRequestSpecification())
-                .body(bookingData)
+                .body(bookingData.toString())
                 .when()
                 .post("/booking");
         
@@ -38,12 +39,12 @@ public class BookingApiClient extends BaseApiClient {
         return this;
     }
 
-    public BookingApiClient updateBooking(int bookingId, String bookingData) {
+    public BookingApiClient updateBooking(int bookingId, JsonNode bookingData) {
         log.info("Updating booking with ID: {} with data: {}", bookingId, bookingData);
         
         lastResponse = given()
                 .spec(getAuthenticatedRequestSpec())
-                .body(bookingData)
+                .body(bookingData.toString())
                 .when()
                 .put("/booking/" + bookingId);
         
