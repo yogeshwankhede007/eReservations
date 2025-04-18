@@ -8,8 +8,6 @@ import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -20,7 +18,6 @@ import static io.restassured.RestAssured.given;
 
 @Slf4j
 public class BaseApiClient {
-    protected static final Logger logger = LoggerFactory.getLogger(BaseApiClient.class);
     protected static Properties config;
     protected static RequestSpecification requestSpec;
     private static String authToken;
@@ -49,8 +46,10 @@ public class BaseApiClient {
                     .addFilter(new ResponseLoggingFilter())
                     .build();
             
+            log.info("Successfully initialized BaseApiClient with base URL: {}", RestAssured.baseURI);
+            
         } catch (IOException e) {
-            logger.error("Error loading configuration: {}", e.getMessage());
+            log.error("Error loading configuration: {}", e.getMessage());
             throw new RuntimeException("Failed to load configuration", e);
         }
     }
@@ -76,13 +75,15 @@ public class BaseApiClient {
                     .post("/auth");
             
             if (response.getStatusCode() == 200) {
-                return response.jsonPath().getString("token");
+                String token = response.jsonPath().getString("token");
+                log.info("Successfully obtained auth token");
+                return token;
             } else {
-                logger.error("Failed to get auth token. Status code: {}", response.getStatusCode());
+                log.error("Failed to get auth token. Status code: {}", response.getStatusCode());
                 return null;
             }
         } catch (Exception e) {
-            logger.error("Error getting auth token: {}", e.getMessage());
+            log.error("Error getting auth token: {}", e.getMessage());
             return null;
         }
     }
@@ -91,7 +92,7 @@ public class BaseApiClient {
         if (response.getStatusCode() != expectedStatusCode) {
             String errorMessage = String.format("Expected status code %d but got %d. Response: %s",
                     expectedStatusCode, response.getStatusCode(), response.getBody().asString());
-            logger.error(errorMessage);
+            log.error(errorMessage);
             throw new AssertionError(errorMessage);
         }
         
@@ -99,25 +100,37 @@ public class BaseApiClient {
             String responseBody = response.getBody().asString();
             if (responseBody == null || responseBody.isEmpty()) {
                 String errorMessage = "Empty response body received";
-                logger.error(errorMessage);
+                log.error(errorMessage);
                 throw new AssertionError(errorMessage);
             }
+        }
+        
+        // Validate response time
+        long responseTime = response.getTime();
+        if (responseTime > MAX_RESPONSE_TIME) {
+            log.warn("Response time ({} ms) exceeded maximum allowed time ({} ms)", 
+                    responseTime, MAX_RESPONSE_TIME);
         }
     }
 
     protected void validateResponseBody(Response response, String jsonPath, Object expectedValue) {
         try {
             Object actualValue = response.jsonPath().get(jsonPath);
-            if (!expectedValue.equals(actualValue)) {
+            if (expectedValue == null && actualValue == null) {
+                return;
+            }
+            if (expectedValue != null && expectedValue.equals(actualValue)) {
+                log.debug("Successfully validated response body at path {}", jsonPath);
+            } else {
                 String errorMessage = String.format("Expected %s to be %s but got %s",
                         jsonPath, expectedValue, actualValue);
-                logger.error(errorMessage);
+                log.error(errorMessage);
                 throw new AssertionError(errorMessage);
             }
         } catch (Exception e) {
             String errorMessage = String.format("Error validating response body at path %s: %s",
                     jsonPath, e.getMessage());
-            logger.error(errorMessage);
+            log.error(errorMessage);
             throw new AssertionError(errorMessage);
         }
     }

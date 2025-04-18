@@ -1,6 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
 <suite name="Restful Booker Sanity Test Suite">
+    <listeners>
+        <listener class-name="org.testng.reporters.EmailableReporter"/>
+        <listener class-name="org.testng.reporters.XMLReporter"/>
+        <listener class-name="org.testng.reporters.JUnitXMLReporter"/>
+        <listener class-name="com.aventstack.extentreports.testng.listener.ExtentITestListenerAdapter"/>
+    </listeners>
+    
     <test name="Basic Functionality Tests">
         <groups>
             <run>
@@ -19,6 +26,7 @@
             </class>
         </classes>
     </test>
+    
     <test name="Critical Security Tests">
         <groups>
             <run>
@@ -33,9 +41,4 @@
             </class>
         </classes>
     </test>
-    <listeners>
-        <listener class-name="org.testng.reporters.EmailableReporter"/>
-        <listener class-name="org.testng.reporters.XMLReporter"/>
-        <listener class-name="org.testng.reporters.JUnitXMLReporter"/>
-    </listeners>
 </suite> 

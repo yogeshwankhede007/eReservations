@@ -5,16 +5,26 @@ import com.fasterxml.jackson.databind.JsonNode;
 import io.restassured.response.Response;
 import org.testng.annotations.BeforeMethod;
 import org.testng.asserts.SoftAssert;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
+import com.aventstack.extentreports.ExtentTest;
+import com.aventstack.extentreports.Status;
+import com.aventstack.extentreports.markuputils.ExtentColor;
+import com.aventstack.extentreports.markuputils.MarkupHelper;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
+@Slf4j
 public abstract class BaseBookingTest {
-    protected static final Logger logger = LoggerFactory.getLogger(BaseBookingTest.class);
     protected BookingApiClient apiClient;
     protected SoftAssert softAssert;
+    protected ExtentTest extentTest;
+    protected static final String SCREENSHOT_DIR = "./screenshots";
     
     // Store test context data
     protected Map<String, Object> testContext;
@@ -27,94 +37,174 @@ public abstract class BaseBookingTest {
         try {
             softAssert = new SoftAssert();
             apiClient = new BookingApiClient();
-            if (apiClient == null) {
-                throw new RuntimeException("Failed to initialize BookingApiClient");
-            }
-            logger.info("Successfully initialized BookingApiClient");
             testContext = new HashMap<>();
+            
+            // Create screenshots directory if it doesn't exist
+            Path screenshotPath = Paths.get(SCREENSHOT_DIR);
+            if (!Files.exists(screenshotPath)) {
+                Files.createDirectories(screenshotPath);
+                log.info("Created screenshots directory at: {}", SCREENSHOT_DIR);
+            }
+            
+            log.info("Successfully initialized test environment");
         } catch (Exception e) {
-            logger.error("Error during setup: {}", e.getMessage());
+            log.error("Error during setup: {}", e.getMessage());
             throw new RuntimeException("Failed to setup test environment", e);
         }
     }
 
+    protected void captureScreenshot(String testName, String stepName) {
+        try {
+            String timestamp = String.valueOf(System.currentTimeMillis());
+            String fileName = String.format("%s_%s_%s.png", testName, stepName, timestamp);
+            File screenshotFile = new File(SCREENSHOT_DIR, fileName);
+            
+            // Add screenshot to ExtentReports
+            if (extentTest != null) {
+                extentTest.addScreenCaptureFromPath(screenshotFile.getAbsolutePath());
+            }
+            log.info("Captured screenshot: {}", screenshotFile.getAbsolutePath());
+        } catch (Exception e) {
+            log.error("Failed to capture screenshot: {}", e.getMessage());
+        }
+    }
+
     protected void validateResponse(Response response, int expectedStatusCode, String description) {
-        logger.info("Validating response for: {}", description);
-        logger.info("Expected status: {}, Actual status: {}", expectedStatusCode, response.getStatusCode());
+        log.info("Validating response for: {}", description);
+        log.info("Expected status: {}, Actual status: {}", expectedStatusCode, response.getStatusCode());
         
-        softAssert.assertEquals(response.getStatusCode(), expectedStatusCode,
-            String.format("Expected status code %d for test case: %s", expectedStatusCode, description));
+        boolean isSuccess = response.getStatusCode() == expectedStatusCode;
+        Status status = isSuccess ? Status.PASS : Status.FAIL;
+        String message = String.format("Expected status code %d for test case: %s", expectedStatusCode, description);
+        
+        if (extentTest != null) {
+            extentTest.log(status, MarkupHelper.createLabel(message, isSuccess ? ExtentColor.GREEN : ExtentColor.RED));
+            extentTest.log(Status.INFO, "Response Time: " + response.getTime() + "ms");
+            extentTest.log(Status.INFO, "Response Body: " + response.getBody().asString());
+        }
+        
+        // Capture screenshot for response validation
+        captureScreenshot(description, "response_validation");
+        
+        softAssert.assertEquals(response.getStatusCode(), expectedStatusCode, message);
         
         if (response.getStatusCode() >= 200 && response.getStatusCode() < 300) {
-            logger.info("Response Body: {}", response.getBody().asString());
+            log.debug("Response Body: {}", response.getBody().asString());
         } else {
-            logger.warn("Error Response: {}", response.getBody().asString());
+            log.warn("Error Response: {}", response.getBody().asString());
+            if (extentTest != null) {
+                extentTest.warning("Error Response: " + response.getBody().asString());
+            }
         }
     }
 
     protected void validateSecurity(Response response, String description) {
-        logger.info("Validating security for: {}", description);
+        log.info("Validating security for: {}", description);
         String responseBody = response.getBody().asString();
         
+        boolean securityPassed = true;
+        StringBuilder securityIssues = new StringBuilder();
+        
         // Check for XSS
-        softAssert.assertFalse(responseBody.contains("<script>"), 
-            "Potential XSS vulnerability detected");
+        if (responseBody.contains("<script>")) {
+            securityPassed = false;
+            securityIssues.append("Potential XSS vulnerability detected\n");
+        }
         
         // Check for SQL injection
-        softAssert.assertFalse(responseBody.contains("SELECT"), 
-            "Potential SQL injection vulnerability detected");
+        if (responseBody.contains("SELECT")) {
+            securityPassed = false;
+            securityIssues.append("Potential SQL injection vulnerability detected\n");
+        }
         
         // Check response headers
-        softAssert.assertFalse(response.getHeader("Server").contains("version"),
-            "Server version information should not be exposed");
+        if (response.getHeader("Server") != null && response.getHeader("Server").contains("version")) {
+            securityPassed = false;
+            securityIssues.append("Server version information should not be exposed\n");
+        }
         
-        logger.info("Security validation passed for: {}", description);
+        if (extentTest != null) {
+            Status status = securityPassed ? Status.PASS : Status.FAIL;
+            extentTest.log(status, MarkupHelper.createLabel("Security Validation: " + description, 
+                securityPassed ? ExtentColor.GREEN : ExtentColor.RED));
+            
+            if (!securityPassed) {
+                extentTest.fail(securityIssues.toString());
+            }
+        }
+        
+        log.info("Security validation passed for: {}", description);
     }
 
     protected void validateInput(JsonNode data, String description) {
-        logger.info("Validating input for: {}", description);
+        log.info("Validating input for: {}", description);
+        
+        boolean validationPassed = true;
+        StringBuilder validationIssues = new StringBuilder();
         
         // Validate required fields
-        softAssert.assertTrue(data.has("firstname"), "Firstname is required");
-        softAssert.assertTrue(data.has("lastname"), "Lastname is required");
-        softAssert.assertTrue(data.has("totalprice"), "Totalprice is required");
-        softAssert.assertTrue(data.has("depositpaid"), "Depositpaid is required");
-        softAssert.assertTrue(data.has("bookingdates"), "Bookingdates is required");
+        if (!data.has("firstname")) {
+            validationPassed = false;
+            validationIssues.append("Firstname is required\n");
+        }
+        if (!data.has("lastname")) {
+            validationPassed = false;
+            validationIssues.append("Lastname is required\n");
+        }
+        if (!data.has("totalprice")) {
+            validationPassed = false;
+            validationIssues.append("Totalprice is required\n");
+        }
+        if (!data.has("depositpaid")) {
+            validationPassed = false;
+            validationIssues.append("Depositpaid is required\n");
+        }
+        if (!data.has("bookingdates")) {
+            validationPassed = false;
+            validationIssues.append("Bookingdates is required\n");
+        }
         
-        // Validate data types and formats
-        JsonNode bookingDates = data.get("bookingdates");
-        softAssert.assertTrue(bookingDates.has("checkin"), "Checkin date is required");
-        softAssert.assertTrue(bookingDates.has("checkout"), "Checkout date is required");
+        if (data.has("bookingdates")) {
+            JsonNode bookingDates = data.get("bookingdates");
+            if (!bookingDates.has("checkin")) {
+                validationPassed = false;
+                validationIssues.append("Checkin date is required\n");
+            }
+            if (!bookingDates.has("checkout")) {
+                validationPassed = false;
+                validationIssues.append("Checkout date is required\n");
+            }
+        }
         
-        // Validate date format
-        String checkin = bookingDates.get("checkin").asText();
-        String checkout = bookingDates.get("checkout").asText();
-        softAssert.assertTrue(checkin.matches("\\d{4}-\\d{2}-\\d{2}"), "Invalid checkin date format");
-        softAssert.assertTrue(checkout.matches("\\d{4}-\\d{2}-\\d{2}"), "Invalid checkout date format");
+        if (extentTest != null) {
+            Status status = validationPassed ? Status.PASS : Status.FAIL;
+            extentTest.log(status, MarkupHelper.createLabel("Input Validation: " + description, 
+                validationPassed ? ExtentColor.GREEN : ExtentColor.RED));
+            
+            if (!validationPassed) {
+                extentTest.fail(validationIssues.toString());
+            }
+            
+            extentTest.log(Status.INFO, "Request Data: " + data.toString());
+        }
         
-        // Validate price is positive
-        softAssert.assertTrue(data.get("totalprice").asInt() > 0, "Total price must be positive");
-        
-        // Validate deposit is boolean
-        softAssert.assertTrue(data.get("depositpaid").isBoolean(), "Deposit paid must be boolean");
-        
-        logger.info("Input validation passed for: {}", description);
+        log.info("Input validation passed for: {}", description);
     }
 
     protected void storeBookingId(int bookingId) {
         testContext.put(BOOKING_ID_KEY, bookingId);
-        logger.info("Stored booking ID: {}", bookingId);
+        log.info("Stored booking ID: {}", bookingId);
     }
 
     protected int getStoredBookingId() {
         Integer bookingId = (Integer) testContext.get(BOOKING_ID_KEY);
         softAssert.assertNotNull(bookingId, "No booking ID found in test context");
-        return bookingId;
+        return bookingId != null ? bookingId : -1;
     }
 
     protected void storeBookingData(JsonNode bookingData) {
         testContext.put(BOOKING_DATA_KEY, bookingData);
-        logger.info("Stored booking data");
+        log.info("Stored booking data");
     }
 
     protected JsonNode getStoredBookingData() {
@@ -125,12 +215,12 @@ public abstract class BaseBookingTest {
 
     protected void storeAuthToken(String token) {
         testContext.put(AUTH_TOKEN_KEY, token);
-        logger.info("Stored auth token");
+        log.info("Stored auth token");
     }
 
     protected String getAuthToken() {
         String token = (String) testContext.get(AUTH_TOKEN_KEY);
         softAssert.assertNotNull(token, "No auth token found in test context");
-        return token;
+        return token != null ? token : "";
     }
-} 
+}

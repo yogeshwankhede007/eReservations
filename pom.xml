@@ -18,6 +18,7 @@
         <lombok.version>1.18.30</lombok.version>
         <slf4j.version>2.0.7</slf4j.version>
         <suiteXmlFile>src/test/resources/test-suites/sanity-suite.xml</suiteXmlFile>
+        <extentreports.version>5.1.1</extentreports.version>
     </properties>
 
     <dependencies>
@@ -92,6 +93,18 @@
             <version>${slf4j.version}</version>
             <scope>test</scope>
         </dependency>
+
+        <!-- ExtentReports Dependencies -->
+        <dependency>
+            <groupId>com.aventstack</groupId>
+            <artifactId>extentreports</artifactId>
+            <version>${extentreports.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.aventstack</groupId>
+            <artifactId>extentreports-testng-adapter</artifactId>
+            <version>1.2.2</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -127,7 +140,7 @@
                         </property>
                         <property>
                             <name>listener</name>
-                            <value>org.testng.reporters.EmailableReporter,org.testng.reporters.XMLReporter,org.testng.reporters.JUnitXMLReporter</value>
+                            <value>org.testng.reporters.EmailableReporter,org.testng.reporters.XMLReporter,org.testng.reporters.JUnitXMLReporter,com.aventstack.extentreports.testng.listener.ExtentITestListenerAdapter</value>
                         </property>
                     </properties>
                 </configuration>
