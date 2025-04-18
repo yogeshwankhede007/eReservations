@@ -9,16 +9,15 @@ import static io.restassured.RestAssured.given;
 public class PingApiClient extends BaseApiClient {
     private Response lastResponse;
 
-    public PingApiClient ping() {
-        log.info("Checking API availability");
+    public Response ping() {
+        log.info("Sending ping request");
         lastResponse = given()
                 .spec(getRequestSpecification())
                 .when()
                 .get("/ping");
-        
         validateResponse(lastResponse, 201);
-        log.info("API is available and responding");
-        return this;
+        log.info("Ping request successful");
+        return lastResponse;
     }
 
     public Response getLastResponse() {

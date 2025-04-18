@@ -7,7 +7,8 @@ import io.restassured.filter.log.ResponseLoggingFilter;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -16,8 +17,8 @@ import java.util.Properties;
 
 import static io.restassured.RestAssured.given;
 
-@Slf4j
 public class BaseApiClient {
+    protected static final Logger log = LoggerFactory.getLogger(BaseApiClient.class);
     protected static Properties config;
     protected static RequestSpecification requestSpec;
     private static String authToken;

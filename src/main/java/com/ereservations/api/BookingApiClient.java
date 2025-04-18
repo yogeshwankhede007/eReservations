@@ -3,12 +3,13 @@ package com.ereservations.api;
 import com.ereservations.models.Booking;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.restassured.response.Response;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static io.restassured.RestAssured.given;
 
-@Slf4j
 public class BookingApiClient extends BaseApiClient {
+    private static final Logger log = LoggerFactory.getLogger(BookingApiClient.class);
     private Response lastResponse;
     
     public BookingApiClient createBooking(JsonNode bookingData) {

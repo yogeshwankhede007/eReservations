@@ -1,12 +1,13 @@
 package com.ereservations.api;
 
 import io.restassured.response.Response;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static io.restassured.RestAssured.given;
 
-@Slf4j
 public class SystemApiClient extends BaseApiClient {
+    private static final Logger log = LoggerFactory.getLogger(SystemApiClient.class);
     private Response lastResponse;
 
     public Response ping() {

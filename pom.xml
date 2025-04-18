@@ -19,6 +19,8 @@
         <slf4j.version>2.0.7</slf4j.version>
         <suiteXmlFile>src/test/resources/test-suites/sanity-suite.xml</suiteXmlFile>
         <extentreports.version>5.1.1</extentreports.version>
+        <gatling.version>3.9.5</gatling.version>
+        <gatling-maven-plugin.version>4.3.0</gatling-maven-plugin.version>
     </properties>
 
     <dependencies>
@@ -105,6 +107,26 @@
             <artifactId>extentreports-testng-adapter</artifactId>
             <version>1.2.2</version>
         </dependency>
+
+        <!-- Gatling Dependencies -->
+        <dependency>
+            <groupId>io.gatling</groupId>
+            <artifactId>gatling-core</artifactId>
+            <version>${gatling.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.gatling</groupId>
+            <artifactId>gatling-http</artifactId>
+            <version>${gatling.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.gatling.highcharts</groupId>
+            <artifactId>gatling-charts-highcharts</artifactId>
+            <version>${gatling.version}</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -114,14 +136,8 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.11.0</version>
                 <configuration>
-                    <release>11</release>
-                    <annotationProcessorPaths>
-                        <path>
-                            <groupId>org.projectlombok</groupId>
-                            <artifactId>lombok</artifactId>
-                            <version>${lombok.version}</version>
-                        </path>
-                    </annotationProcessorPaths>
+                    <source>11</source>
+                    <target>11</target>
                 </configuration>
             </plugin>
 
@@ -145,6 +161,27 @@
                     </properties>
                 </configuration>
             </plugin>
+
+            <!-- Gatling Maven Plugin -->
+            <plugin>
+                <groupId>io.gatling</groupId>
+                <artifactId>gatling-maven-plugin</artifactId>
+                <version>${gatling-maven-plugin.version}</version>
+                <configuration>
+                    <simulationsFolder>${project.basedir}/src/test/gatling/simulations</simulationsFolder>
+                    <resourcesFolder>${project.basedir}/src/test/gatling/resources</resourcesFolder>
+                    <resultsFolder>${project.build.directory}/gatling/results</resultsFolder>
+                    <simulationClass>com.ereservations.gatling.BookingApiSimulation</simulationClass>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>test</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
+        <testSourceDirectory>src/test/gatling/simulations</testSourceDirectory>
     </build>
 </project> 

@@ -1,12 +1,14 @@
 package com.ereservations.api;
 
 import io.restassured.response.Response;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static io.restassured.RestAssured.given;
 
-@Slf4j
 public class HealthCheckApiClient extends BaseApiClient {
+    private static final Logger log = LoggerFactory.getLogger(HealthCheckApiClient.class);
+
     private Response lastResponse;
 
     public HealthCheckApiClient checkHealth() {

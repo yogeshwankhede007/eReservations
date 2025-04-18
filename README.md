@@ -1,157 +1,214 @@
-# eReservations - Enterprise Travel Booking System
+# eReservations API Testing Framework
 
-![eReservations Logo](https://img.shields.io/badge/eReservations-Enterprise%20Travel-blue?style=for-the-badge)
-[![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg?style=flat)](https://github.com/yogeshwankhede007/eReservations)
-[![Test Coverage](https://img.shields.io/badge/coverage-95%25-brightgreen.svg?style=flat)](https://github.com/yogeshwankhede007/eReservations)
-[![License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat)](LICENSE)
+A robust and scalable API testing framework for the Restful Booker API, built with Java, TestNG, and Gatling.
 
-## 🌟 Overview
+## 🏗️ Framework Architecture
 
-eReservations is a state-of-the-art travel booking automation framework designed for enterprise-level travel management companies. Built with scalability and reliability in mind, it provides a robust API testing solution for travel booking systems.
+```mermaid
+graph TD
+    subgraph "Test Framework"
+        A[TestNG Test Suite] --> B[Base Test Classes]
+        B --> C[API Client Layer]
+        C --> D[RestAssured]
+        B --> E[Test Data Management]
+        B --> F[Reporting]
+    end
 
-### 🎯 Key Features
+    subgraph "Performance Testing"
+        G[Gatling Simulations] --> H[Load Testing]
+        G --> I[Stress Testing]
+        G --> J[Performance Reports]
+    end
 
-- **Comprehensive API Testing**: End-to-end testing of booking workflows
-- **ChainTest Reporting**: Detailed test execution insights with ChainTest framework
-- **Data-Driven Testing**: External test data management for flexible testing scenarios
-- **Parallel Execution**: Optimized test execution with multi-threading support
-- **Authentication Management**: Secure token-based authentication handling
-- **Logging & Monitoring**: Detailed logging with request/response tracking
-- **Negative Testing**: Comprehensive validation of error scenarios
-- **Security Testing**: Built-in security testing capabilities
+    subgraph "Reporting & Analysis"
+        K[ExtentReports] --> L[HTML Reports]
+        M[TestNG Reports] --> N[XML Reports]
+        O[Gatling Reports] --> P[Performance Metrics]
+    end
 
-## 🚀 Technology Stack
+    subgraph "CI/CD Integration"
+        Q[Maven] --> R[Build Pipeline]
+        R --> S[Test Execution]
+        S --> T[Report Generation]
+    end
 
-- **Java 11**: Core programming language
-- **TestNG**: Test automation framework
-- **REST Assured**: API testing library
-- **ChainTest**: Test reporting framework
-- **Maven**: Build and dependency management
-- **Lombok**: Boilerplate code reduction
-- **SLF4J**: Logging framework
-- **Jackson**: JSON processing library
-
-## 📋 Prerequisites
-
-- Java 11 or higher
-- Maven 3.6.3 or higher
-- ChainTest Framework
-
-## 🛠️ Setup & Installation
-
-1. **Clone the Repository**
-   ```bash
-   git clone https://github.com/yogeshwankhede007/eReservations.git
-   cd eReservations
-   ```
-
-2. **Install Dependencies**
-   ```bash
-   mvn clean install
-   ```
-
-3. **Configure Environment**
-   - Update `src/main/resources/config.properties` with your environment settings
-   ```properties
-   base.url=https://your-api-endpoint.com
-   auth.username=your-username
-   auth.password=your-password
-   ```
-
-## 🏃‍♂️ Running Tests
-
-### Running All Tests
-```bash
-mvn clean test
+    style A fill:#f9f,stroke:#333,stroke-width:2px
+    style G fill:#bbf,stroke:#333,stroke-width:2px
+    style K fill:#bfb,stroke:#333,stroke-width:2px
+    style Q fill:#fbb,stroke:#333,stroke-width:2px
 ```
 
-### Running Specific Test Suites
-```bash
-mvn test -DsuiteXmlFile=src/test/resources/testng.xml
-```
+## 🛠️ Technical Stack
 
-### Generating Reports
-```bash
-mvn chaintest:report
-```
+- **Core Framework**: Java 11
+- **Testing**: TestNG 7.7.1
+- **API Testing**: RestAssured 5.3.0
+- **Performance Testing**: Gatling 3.9.5
+- **Reporting**: ExtentReports 5.1.1
+- **Build Tool**: Maven
+- **Logging**: SLF4J 2.0.7
+- **JSON Processing**: Jackson 2.15.2
 
-## 📊 Test Reports
-
-The framework generates detailed ChainTest reports including:
-- Test execution statistics
-- Step-by-step test execution details
-- Request/Response logs
-- Test execution timeline
-- Environment details
-- Negative test results
-- Security test findings
-
-## 🏗️ Project Structure
+## 📁 Project Structure
 
 ```
 eReservations/
 ├── src/
 │   ├── main/
-│   │   ├── java/
-│   │   │   └── com/ereservations/
-│   │   │       ├── api/
-│   │   │       ├── models/
-│   │   │       └── utils/
-│   │   └── resources/
+│   │   └── java/
+│   │       └── com/ereservations/
+│   │           ├── api/              # API Client Layer
+│   │           │   ├── BaseApiClient.java
+│   │           │   ├── BookingApiClient.java
+│   │           │   ├── HealthCheckApiClient.java
+│   │           │   ├── PingApiClient.java
+│   │           │   └── SystemApiClient.java
+│   │           └── models/           # Data Models
 │   └── test/
 │       ├── java/
 │       │   └── com/ereservations/
-│       │       ├── tests/
-│       │       └── utils/
-│       └── resources/
-│           ├── test-data/
-│           │   ├── negative-test-data.json
-│           │   └── positive-test-data.json
-│           └── testng.xml
+│       │       └── tests/            # Test Classes
+│       ├── resources/
+│       │   ├── config.properties     # Configuration
+│       │   └── test-suites/          # TestNG Suites
+│       └── gatling/
+│           ├── simulations/          # Gatling Tests
+│           └── resources/            # Gatling Resources
+├── target/
+│   ├── surefire-reports/            # TestNG Reports
+│   └── gatling/results/             # Gatling Reports
+└── pom.xml                          # Maven Configuration
 ```
 
-## 🔄 Recent Updates
+## 🔄 Test Flow Architecture
 
-### Version 1.2.0
-- Replaced Allure reporting with ChainTest framework
-- Updated codebase to comply with SonarCloud code scanning standards
-- Enhanced error handling and logging mechanisms
-- Improved test execution performance
-- Implemented strict code quality checks
+```mermaid
+sequenceDiagram
+    participant T as TestNG Test
+    participant B as Base Test
+    participant A as API Client
+    participant R as RestAssured
+    participant S as System Under Test
 
-### Version 1.1.0
-- Enhanced reporting with improved attachment handling
-- Added comprehensive negative test scenarios
-- Implemented security testing capabilities
-- Fixed JSON parsing issues in test data
-- Improved error handling and logging
-- Updated test execution configuration
+    T->>B: Initialize Test
+    B->>A: Create API Client
+    A->>R: Configure Request
+    R->>S: Send API Request
+    S-->>R: Receive Response
+    R-->>A: Process Response
+    A-->>B: Validate Response
+    B-->>T: Report Results
+```
 
-### Version 1.0.0
-- Initial release with basic booking API testing
-- Basic reporting integration
-- Core API client implementation
-- Basic test data management
+## 🚀 Key Features
 
-## 📝 License
+1. **Modular API Client Layer**
+   - Base client with common functionality
+   - Specialized clients for each API endpoint
+   - Automatic authentication handling
+   - Response validation and error handling
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+2. **Comprehensive Testing**
+   - Functional API testing
+   - Performance testing with Gatling
+   - Security testing capabilities
+   - Data validation and verification
+
+3. **Advanced Reporting**
+   - ExtentReports integration
+   - Gatling performance reports
+   - TestNG HTML reports
+   - Screenshot capture for failures
+
+4. **Configuration Management**
+   - Environment-specific configurations
+   - Dynamic test data generation
+   - Flexible test suite organization
+
+## 🧪 Test Categories
+
+1. **Functional Tests**
+   - Basic CRUD operations
+   - Input validation
+   - Error handling
+   - Edge cases
+
+2. **Performance Tests**
+   - Load testing
+   - Stress testing
+   - Endurance testing
+   - Spike testing
+
+3. **Security Tests**
+   - Authentication
+   - Authorization
+   - Input validation
+   - Error handling
+
+## 📊 Reporting
+
+```mermaid
+graph LR
+    A[Test Execution] --> B[ExtentReports]
+    A --> C[TestNG Reports]
+    A --> D[Gatling Reports]
+    B --> E[HTML Dashboard]
+    C --> F[XML Results]
+    D --> G[Performance Charts]
+    E --> H[Test Summary]
+    F --> H
+    G --> H
+```
+
+## 🛠️ Getting Started
+
+1. **Prerequisites**
+   - Java 11 or higher
+   - Maven 3.6 or higher
+
+2. **Installation**
+   ```bash
+   git clone https://github.com/yourusername/eReservations.git
+   cd eReservations
+   mvn clean install
+   ```
+
+3. **Running Tests**
+   ```bash
+   # Run all tests
+   mvn clean test
+
+   # Run specific test suite
+   mvn clean test -DsuiteXmlFile=src/test/resources/test-suites/sanity-suite.xml
+
+   # Run Gatling tests
+   mvn clean gatling:test
+   ```
+
+## 📈 Performance Metrics
+
+The framework includes comprehensive performance testing capabilities:
+
+- Response time tracking
+- Throughput measurement
+- Error rate monitoring
+- Resource utilization analysis
+
+## 🔒 Security Features
+
+- Secure credential management
+- Token-based authentication
+- Input sanitization
+- Error message handling
 
 ## 🤝 Contributing
 
 1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+2. Create your feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a Pull Request
 
-## 🌐 Support
+## 📝 License
 
-For support and queries, please contact:
-- Email: yogi.wankhede007@gmail.com
-- Documentation: [docs.ereservations.com](https://restful-booker.herokuapp.com/apidoc/index.html#api-Ping)
-- Issue Tracker: [GitHub Issues](https://github.com/yogeshwankhede007/eReservations/issues)
-
----
-
-<p align="center">Made with ❤️ by Yogesh W.</p>
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
