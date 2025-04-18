@@ -1,15 +1,22 @@
 package com.ereservations.tests;
 
+import com.ereservations.api.BaseApiClient;
 import com.ereservations.api.BookingApiClient;
-import com.fasterxml.jackson.databind.JsonNode;
+import com.ereservations.api.HealthCheckApiClient;
+import com.ereservations.api.PingApiClient;
+import com.ereservations.api.SystemApiClient;
+import com.ereservations.models.Booking;
+import com.ereservations.models.BookingDates;
+import com.ereservations.models.BookingResponse;
+import com.ereservations.models.HealthCheckResponse;
+import com.ereservations.models.PingResponse;
+import com.ereservations.models.SystemResponse;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.response.Response;
-import org.testng.annotations.BeforeMethod;
-import org.testng.asserts.SoftAssert;
-import lombok.extern.slf4j.Slf4j;
-import com.aventstack.extentreports.ExtentTest;
-import com.aventstack.extentreports.Status;
-import com.aventstack.extentreports.markuputils.ExtentColor;
-import com.aventstack.extentreports.markuputils.MarkupHelper;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
 
 import java.io.File;
 import java.io.IOException;
@@ -18,209 +25,176 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
+import java.util.concurrent.ConcurrentHashMap;
 
-@Slf4j
-public abstract class BaseBookingTest {
-    protected BookingApiClient apiClient;
-    protected SoftAssert softAssert;
-    protected ExtentTest extentTest;
-    protected static final String SCREENSHOT_DIR = "./screenshots";
+public class BaseBookingTest {
+    protected static final Logger log = LogManager.getLogger(BaseBookingTest.class);
+    protected static final String CONFIG_FILE = "config.properties";
+    protected static final String TEST_DATA_DIR = "src/test/resources/test-data";
+    protected static final String TEST_SUITES_DIR = "src/test/resources/test-suites";
     
-    // Store test context data
-    protected Map<String, Object> testContext;
-    protected static final String BOOKING_ID_KEY = "bookingId";
-    protected static final String BOOKING_DATA_KEY = "bookingData";
-    protected static final String AUTH_TOKEN_KEY = "authToken";
+    protected static final Map<String, Object> testContext = new ConcurrentHashMap<>();
+    protected static final ObjectMapper objectMapper = new ObjectMapper();
+    
+    protected static Properties config;
+    protected static BaseApiClient baseApiClient;
+    protected static BookingApiClient bookingApiClient;
+    protected static HealthCheckApiClient healthCheckApiClient;
+    protected static PingApiClient pingApiClient;
+    protected static SystemApiClient systemApiClient;
 
-    @BeforeMethod(alwaysRun = true)
-    public void setup() {
-        try {
-            softAssert = new SoftAssert();
-            apiClient = new BookingApiClient();
-            testContext = new HashMap<>();
-            
-            // Create screenshots directory if it doesn't exist
-            Path screenshotPath = Paths.get(SCREENSHOT_DIR);
-            if (!Files.exists(screenshotPath)) {
-                Files.createDirectories(screenshotPath);
-                log.info("Created screenshots directory at: {}", SCREENSHOT_DIR);
-            }
-            
-            log.info("Successfully initialized test environment");
-        } catch (Exception e) {
-            log.error("Error during setup: {}", e.getMessage());
-            throw new RuntimeException("Failed to setup test environment", e);
-        }
+    @BeforeClass
+    public void setup() throws IOException {
+        // Load configuration
+        config = new Properties();
+        config.load(getClass().getClassLoader().getResourceAsStream(CONFIG_FILE));
+        
+        // Initialize API clients
+        baseApiClient = new BaseApiClient(config.getProperty("api.base.url"));
+        bookingApiClient = new BookingApiClient(config.getProperty("api.base.url"));
+        healthCheckApiClient = new HealthCheckApiClient(config.getProperty("api.base.url"));
+        pingApiClient = new PingApiClient(config.getProperty("api.base.url"));
+        systemApiClient = new SystemApiClient(config.getProperty("api.base.url"));
+        
+        // Initialize test context
+        testContext.clear();
     }
 
-    protected void captureScreenshot(String testName, String stepName) {
-        try {
-            String timestamp = String.valueOf(System.currentTimeMillis());
-            String fileName = String.format("%s_%s_%s.png", testName, stepName, timestamp);
-            File screenshotFile = new File(SCREENSHOT_DIR, fileName);
-            
-            // Add screenshot to ExtentReports
-            if (extentTest != null) {
-                extentTest.addScreenCaptureFromPath(screenshotFile.getAbsolutePath());
-            }
-            log.info("Captured screenshot: {}", screenshotFile.getAbsolutePath());
-        } catch (Exception e) {
-            log.error("Failed to capture screenshot: {}", e.getMessage());
-        }
-    }
-
-    protected void validateResponse(Response response, int expectedStatusCode, String description) {
+    protected void validateResponse(Response response, String description, int expectedStatus) {
         log.info("Validating response for: {}", description);
-        log.info("Expected status: {}, Actual status: {}", expectedStatusCode, response.getStatusCode());
+        log.info("Expected status: {}, Actual status: {}", expectedStatus, response.getStatusCode());
         
-        boolean isSuccess = response.getStatusCode() == expectedStatusCode;
-        Status status = isSuccess ? Status.PASS : Status.FAIL;
-        String message = String.format("Expected status code %d for test case: %s", expectedStatusCode, description);
-        
-        if (extentTest != null) {
-            extentTest.log(status, MarkupHelper.createLabel(message, isSuccess ? ExtentColor.GREEN : ExtentColor.RED));
-            extentTest.log(Status.INFO, "Response Time: " + response.getTime() + "ms");
-            extentTest.log(Status.INFO, "Response Body: " + response.getBody().asString());
+        if (response.getStatusCode() != expectedStatus) {
+            log.error("Response validation failed for: {}", description);
+            log.error("Response body: {}", response.getBody().asString());
         }
         
-        // Capture screenshot for response validation
-        captureScreenshot(description, "response_validation");
-        
-        softAssert.assertEquals(response.getStatusCode(), expectedStatusCode, message);
-        
-        if (response.getStatusCode() >= 200 && response.getStatusCode() < 300) {
-            log.debug("Response Body: {}", response.getBody().asString());
-        } else {
-            log.warn("Error Response: {}", response.getBody().asString());
-            if (extentTest != null) {
-                extentTest.warning("Error Response: " + response.getBody().asString());
-            }
-        }
+        assert response.getStatusCode() == expectedStatus : 
+            String.format("Expected status %d but got %d for %s", 
+                expectedStatus, response.getStatusCode(), description);
     }
 
     protected void validateSecurity(Response response, String description) {
         log.info("Validating security for: {}", description);
-        String responseBody = response.getBody().asString();
         
-        boolean securityPassed = true;
-        StringBuilder securityIssues = new StringBuilder();
-        
-        // Check for XSS
-        if (responseBody.contains("<script>")) {
-            securityPassed = false;
-            securityIssues.append("Potential XSS vulnerability detected\n");
-        }
-        
-        // Check for SQL injection
-        if (responseBody.contains("SELECT")) {
-            securityPassed = false;
-            securityIssues.append("Potential SQL injection vulnerability detected\n");
-        }
-        
-        // Check response headers
-        if (response.getHeader("Server") != null && response.getHeader("Server").contains("version")) {
-            securityPassed = false;
-            securityIssues.append("Server version information should not be exposed\n");
-        }
-        
-        if (extentTest != null) {
-            Status status = securityPassed ? Status.PASS : Status.FAIL;
-            extentTest.log(status, MarkupHelper.createLabel("Security Validation: " + description, 
-                securityPassed ? ExtentColor.GREEN : ExtentColor.RED));
-            
-            if (!securityPassed) {
-                extentTest.fail(securityIssues.toString());
-            }
-        }
+        // Check for common security headers
+        assert response.getHeader("X-Content-Type-Options") != null : 
+            "Missing X-Content-Type-Options header";
+        assert response.getHeader("X-Frame-Options") != null : 
+            "Missing X-Frame-Options header";
+        assert response.getHeader("X-XSS-Protection") != null : 
+            "Missing X-XSS-Protection header";
         
         log.info("Security validation passed for: {}", description);
     }
 
-    protected void validateInput(JsonNode data, String description) {
+    protected void validateInput(Booking booking, String description) {
         log.info("Validating input for: {}", description);
         
-        boolean validationPassed = true;
-        StringBuilder validationIssues = new StringBuilder();
-        
         // Validate required fields
-        if (!data.has("firstname")) {
-            validationPassed = false;
-            validationIssues.append("Firstname is required\n");
-        }
-        if (!data.has("lastname")) {
-            validationPassed = false;
-            validationIssues.append("Lastname is required\n");
-        }
-        if (!data.has("totalprice")) {
-            validationPassed = false;
-            validationIssues.append("Totalprice is required\n");
-        }
-        if (!data.has("depositpaid")) {
-            validationPassed = false;
-            validationIssues.append("Depositpaid is required\n");
-        }
-        if (!data.has("bookingdates")) {
-            validationPassed = false;
-            validationIssues.append("Bookingdates is required\n");
-        }
-        
-        if (data.has("bookingdates")) {
-            JsonNode bookingDates = data.get("bookingdates");
-            if (!bookingDates.has("checkin")) {
-                validationPassed = false;
-                validationIssues.append("Checkin date is required\n");
-            }
-            if (!bookingDates.has("checkout")) {
-                validationPassed = false;
-                validationIssues.append("Checkout date is required\n");
-            }
-        }
-        
-        if (extentTest != null) {
-            Status status = validationPassed ? Status.PASS : Status.FAIL;
-            extentTest.log(status, MarkupHelper.createLabel("Input Validation: " + description, 
-                validationPassed ? ExtentColor.GREEN : ExtentColor.RED));
-            
-            if (!validationPassed) {
-                extentTest.fail(validationIssues.toString());
-            }
-            
-            extentTest.log(Status.INFO, "Request Data: " + data.toString());
-        }
+        assert booking.getFirstname() != null && !booking.getFirstname().isEmpty() : 
+            "Firstname is required";
+        assert booking.getLastname() != null && !booking.getLastname().isEmpty() : 
+            "Lastname is required";
+        assert booking.getTotalprice() >= 0 : 
+            "Totalprice must be non-negative";
+        assert booking.getDepositpaid() != null : 
+            "Depositpaid is required";
+        assert booking.getBookingdates() != null : 
+            "Bookingdates is required";
+        assert booking.getBookingdates().getCheckin() != null : 
+            "Checkin date is required";
+        assert booking.getBookingdates().getCheckout() != null : 
+            "Checkout date is required";
         
         log.info("Input validation passed for: {}", description);
     }
 
-    protected void storeBookingId(int bookingId) {
-        testContext.put(BOOKING_ID_KEY, bookingId);
-        log.info("Stored booking ID: {}", bookingId);
+    // Test data providers
+    @DataProvider(name = "validBookingData")
+    public Object[][] provideValidBookingData() {
+        return new Object[][] {
+            {createValidBooking("John", "Doe")},
+            {createValidBooking("Jane", "Smith")},
+            {createValidBooking("Test", "User")}
+        };
     }
 
-    protected int getStoredBookingId() {
-        Integer bookingId = (Integer) testContext.get(BOOKING_ID_KEY);
-        softAssert.assertNotNull(bookingId, "No booking ID found in test context");
-        return bookingId != null ? bookingId : -1;
+    @DataProvider(name = "invalidBookingData")
+    public Object[][] provideInvalidBookingData() {
+        return new Object[][] {
+            {createInvalidBooking(null, "Doe")},
+            {createInvalidBooking("John", null)},
+            {createInvalidBooking("", "Doe")},
+            {createInvalidBooking("John", "")}
+        };
     }
 
-    protected void storeBookingData(JsonNode bookingData) {
-        testContext.put(BOOKING_DATA_KEY, bookingData);
-        log.info("Stored booking data");
+    @DataProvider(name = "securityTestData")
+    public Object[][] provideSecurityTestData() {
+        return new Object[][] {
+            {createSecurityTestBooking("<script>alert('xss')</script>", "Doe")},
+            {createSecurityTestBooking("John", "'; DROP TABLE bookings; --")},
+            {createSecurityTestBooking("John", "OR '1'='1")}
+        };
     }
 
-    protected JsonNode getStoredBookingData() {
-        JsonNode bookingData = (JsonNode) testContext.get(BOOKING_DATA_KEY);
-        softAssert.assertNotNull(bookingData, "No booking data found in test context");
-        return bookingData;
+    // Helper methods for creating test data
+    protected Booking createValidBooking(String firstname, String lastname) {
+        BookingDates dates = new BookingDates();
+        dates.setCheckin("2024-01-01");
+        dates.setCheckout("2024-01-05");
+        
+        Booking booking = new Booking();
+        booking.setFirstname(firstname);
+        booking.setLastname(lastname);
+        booking.setTotalprice(100);
+        booking.setDepositpaid(true);
+        booking.setBookingdates(dates);
+        booking.setAdditionalneeds("Breakfast");
+        
+        return booking;
     }
 
-    protected void storeAuthToken(String token) {
-        testContext.put(AUTH_TOKEN_KEY, token);
-        log.info("Stored auth token");
+    protected Booking createInvalidBooking(String firstname, String lastname) {
+        Booking booking = new Booking();
+        booking.setFirstname(firstname);
+        booking.setLastname(lastname);
+        // Other fields are intentionally left null/invalid
+        return booking;
     }
 
-    protected String getAuthToken() {
-        String token = (String) testContext.get(AUTH_TOKEN_KEY);
-        softAssert.assertNotNull(token, "No auth token found in test context");
-        return token != null ? token : "";
+    protected Booking createSecurityTestBooking(String firstname, String lastname) {
+        BookingDates dates = new BookingDates();
+        dates.setCheckin("2024-01-01");
+        dates.setCheckout("2024-01-05");
+        
+        Booking booking = new Booking();
+        booking.setFirstname(firstname);
+        booking.setLastname(lastname);
+        booking.setTotalprice(100);
+        booking.setDepositpaid(true);
+        booking.setBookingdates(dates);
+        booking.setAdditionalneeds("Security Test");
+        
+        return booking;
+    }
+
+    // Context management methods
+    protected void storeInContext(String key, Object value) {
+        testContext.put(key, value);
+        log.debug("Stored in context - Key: {}, Value: {}", key, value);
+    }
+
+    protected Object getFromContext(String key) {
+        Object value = testContext.get(key);
+        log.debug("Retrieved from context - Key: {}, Value: {}", key, value);
+        return value;
+    }
+
+    protected void clearContext() {
+        testContext.clear();
+        log.debug("Cleared test context");
     }
 }
