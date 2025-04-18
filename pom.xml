@@ -15,8 +15,9 @@
         <rest.assured.version>5.3.0</rest.assured.version>
         <testng.version>7.7.1</testng.version>
         <jackson.version>2.15.2</jackson.version>
-        <lombok.version>1.18.26</lombok.version>
+        <lombok.version>1.18.30</lombok.version>
         <slf4j.version>2.0.7</slf4j.version>
+        <suiteXmlFile>src/test/resources/test-suites/sanity-suite.xml</suiteXmlFile>
     </properties>
 
     <dependencies>
@@ -45,6 +46,12 @@
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
             <version>${testng.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testng</groupId>
+            <artifactId>reportng</artifactId>
+            <version>1.2.2</version>
             <scope>test</scope>
         </dependency>
 
@@ -94,8 +101,14 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.11.0</version>
                 <configuration>
-                    <source>${maven.compiler.source}</source>
-                    <target>${maven.compiler.target}</target>
+                    <release>11</release>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>${lombok.version}</version>
+                        </path>
+                    </annotationProcessorPaths>
                 </configuration>
             </plugin>
 
@@ -105,7 +118,7 @@
                 <version>3.1.2</version>
                 <configuration>
                     <suiteXmlFiles>
-                        <suiteXmlFile>src/test/resources/test-suites/sanity-suite.xml</suiteXmlFile>
+                        <suiteXmlFile>${suiteXmlFile}</suiteXmlFile>
                     </suiteXmlFiles>
                     <properties>
                         <property>
@@ -114,10 +127,9 @@
                         </property>
                         <property>
                             <name>listener</name>
-                            <value>org.testng.reporters.EmailableReporter,org.testng.reporters.HtmlReporter</value>
+                            <value>org.testng.reporters.EmailableReporter,org.testng.reporters.XMLReporter,org.testng.reporters.JUnitXMLReporter</value>
                         </property>
                     </properties>
-                    <reportsDirectory>${project.build.directory}/surefire-reports</reportsDirectory>
                 </configuration>
             </plugin>
         </plugins>

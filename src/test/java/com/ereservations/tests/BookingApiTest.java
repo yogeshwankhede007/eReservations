@@ -11,11 +11,11 @@ import org.testng.annotations.Test;
 @Slf4j
 public class BookingApiTest extends BaseBookingTest {
 
-    @Test(description = "Create a new booking and store its ID", groups = {"sanity", "smoke"})
+    @Test(description = "Create a new booking and store its ID", groups = {"sanity", "smoke"}, priority = 1)
     public void testCreateBooking() {
         log.info("Creating a new booking");
         JsonNode bookingData = TestDataProvider.getValidBookingData();
-        Response response = apiClient.createBooking(bookingData);
+        Response response = apiClient.createBooking(bookingData).getLastResponse();
         
         validateResponse(response, 200, "Create Booking");
         validateSecurity(response, "Create Booking");
@@ -29,26 +29,26 @@ public class BookingApiTest extends BaseBookingTest {
         log.info("Created booking with ID: {}", bookingId);
     }
 
-    @Test(dependsOnMethods = "testCreateBooking", description = "Get all booking IDs", groups = {"sanity", "smoke"})
+    @Test(dependsOnMethods = "testCreateBooking", description = "Get all booking IDs", groups = {"sanity", "smoke"}, priority = 2)
     public void testGetBookingIds() {
         log.info("Getting all booking IDs");
-        Response response = apiClient.getBookingIds();
+        Response response = apiClient.getBookingIds().getLastResponse();
         
         validateResponse(response, 200, "Get Booking IDs");
         validateSecurity(response, "Get Booking IDs");
         
         int storedBookingId = getStoredBookingId();
-        Assert.assertTrue(response.jsonPath().getList("").contains(storedBookingId),
+        Assert.assertTrue(response.jsonPath().getList("bookingid").contains(storedBookingId),
             "Created booking ID should be in the list");
         log.info("Verified booking ID {} exists in the list", storedBookingId);
     }
 
-    @Test(dependsOnMethods = "testGetBookingIds", description = "Get specific booking details", groups = {"sanity", "smoke"})
+    @Test(dependsOnMethods = "testGetBookingIds", description = "Get specific booking details", groups = {"sanity", "smoke"}, priority = 3)
     public void testGetBooking() {
         int bookingId = getStoredBookingId();
         log.info("Getting booking details for ID: {}", bookingId);
         
-        Response response = apiClient.getBooking(bookingId);
+        Response response = apiClient.getBooking(bookingId).getLastResponse();
         validateResponse(response, 200, "Get Booking");
         validateSecurity(response, "Get Booking");
         
@@ -60,13 +60,13 @@ public class BookingApiTest extends BaseBookingTest {
         log.info("Verified booking details match for ID: {}", bookingId);
     }
 
-    @Test(dependsOnMethods = "testGetBooking", description = "Update booking details", groups = {"sanity", "smoke"})
+    @Test(dependsOnMethods = "testGetBooking", description = "Update booking details", groups = {"sanity", "smoke"}, priority = 4)
     public void testUpdateBooking() {
         int bookingId = getStoredBookingId();
         log.info("Updating booking with ID: {}", bookingId);
         
         JsonNode updatedData = TestDataProvider.getValidBookingData();
-        Response response = apiClient.updateBooking(bookingId, updatedData);
+        Response response = apiClient.updateBooking(bookingId, updatedData).getLastResponse();
         
         validateResponse(response, 200, "Update Booking");
         validateSecurity(response, "Update Booking");
@@ -76,17 +76,17 @@ public class BookingApiTest extends BaseBookingTest {
         log.info("Updated booking with ID: {}", bookingId);
     }
 
-    @Test(dependsOnMethods = "testUpdateBooking", description = "Delete booking", groups = {"sanity", "smoke"})
+    @Test(dependsOnMethods = "testUpdateBooking", description = "Delete booking", groups = {"sanity", "smoke"}, priority = 5)
     public void testDeleteBooking() {
         int bookingId = getStoredBookingId();
         log.info("Deleting booking with ID: {}", bookingId);
         
-        Response response = apiClient.deleteBooking(bookingId);
+        Response response = apiClient.deleteBooking(bookingId).getLastResponse();
         validateResponse(response, 201, "Delete Booking");
         validateSecurity(response, "Delete Booking");
         
         // Verify booking is deleted
-        Response getResponse = apiClient.getBooking(bookingId);
+        Response getResponse = apiClient.getBooking(bookingId).getLastResponse();
         validateResponse(getResponse, 404, "Get Deleted Booking");
         log.info("Successfully deleted booking with ID: {}", bookingId);
     }

@@ -1,6 +1,7 @@
 package com.ereservations.runner;
 
 import org.testng.TestNG;
+import org.testng.xml.XmlClass;
 import org.testng.xml.XmlSuite;
 import org.testng.xml.XmlTest;
 
@@ -21,10 +22,10 @@ public class TestRunner {
         test.setPreserveOrder(true);
         
         // Add test classes
-        List<String> classes = new ArrayList<>();
-        classes.add("com.ereservations.tests.BookingApiTest");
-        classes.add("com.ereservations.tests.BookingNegativeTest");
-        classes.add("com.ereservations.tests.SystemApiTest");
+        List<XmlClass> classes = new ArrayList<>();
+        classes.add(new XmlClass("com.ereservations.tests.BookingApiTest"));
+        classes.add(new XmlClass("com.ereservations.tests.BookingNegativeTest"));
+        classes.add(new XmlClass("com.ereservations.tests.SystemApiTest"));
         test.setXmlClasses(classes);
         
         // Add suite to TestNG

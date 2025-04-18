@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Properties;
 
 import static io.restassured.RestAssured.given;
@@ -28,7 +29,15 @@ public class BaseApiClient {
     static {
         try {
             config = new Properties();
-            config.load(new FileInputStream("src/main/resources/config.properties"));
+            // Try to load from classpath first
+            try (InputStream inputStream = BaseApiClient.class.getClassLoader().getResourceAsStream("config.properties")) {
+                if (inputStream != null) {
+                    config.load(inputStream);
+                } else {
+                    // Fallback to file system path
+                    config.load(new FileInputStream("src/main/resources/config.properties"));
+                }
+            }
             
             // Initialize RestAssured
             RestAssured.baseURI = config.getProperty("base.url");

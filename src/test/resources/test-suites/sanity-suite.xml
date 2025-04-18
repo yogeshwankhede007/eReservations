@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
-<suite name="Restful Booker Sanity Test Suite" parallel="tests" thread-count="2">
+<suite name="Restful Booker Sanity Test Suite">
     <test name="Basic Functionality Tests">
         <groups>
             <run>
@@ -12,6 +12,7 @@
                 <methods>
                     <include name="testCreateBooking"/>
                     <include name="testGetBookingIds"/>
+                    <include name="testGetBooking"/>
                     <include name="testUpdateBooking"/>
                     <include name="testDeleteBooking"/>
                 </methods>
@@ -34,6 +35,7 @@
     </test>
     <listeners>
         <listener class-name="org.testng.reporters.EmailableReporter"/>
-        <listener class-name="org.testng.reporters.HtmlReporter"/>
+        <listener class-name="org.testng.reporters.XMLReporter"/>
+        <listener class-name="org.testng.reporters.JUnitXMLReporter"/>
     </listeners>
 </suite> 

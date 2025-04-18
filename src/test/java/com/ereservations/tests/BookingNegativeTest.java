@@ -32,7 +32,7 @@ public class BookingNegativeTest extends BaseBookingTest {
         log.info("Testing invalid booking data: {}", testCase);
         validateInput(data, testCase);
         
-        Response response = apiClient.createBooking(data.toString());
+        Response response = apiClient.createBooking(data).getLastResponse();
         validateResponse(response, expectedStatusCode, testCase);
         validateSecurity(response, testCase);
         
@@ -47,7 +47,7 @@ public class BookingNegativeTest extends BaseBookingTest {
         log.info("Testing edge case: {}", testCase);
         validateInput(data, testCase);
         
-        Response response = apiClient.createBooking(data.toString());
+        Response response = apiClient.createBooking(data).getLastResponse();
         validateResponse(response, expectedStatusCode, testCase);
         validateSecurity(response, testCase);
         
@@ -62,7 +62,7 @@ public class BookingNegativeTest extends BaseBookingTest {
         log.info("Testing security case: {}", testCase);
         validateInput(data, testCase);
         
-        Response response = apiClient.createBooking(data.toString());
+        Response response = apiClient.createBooking(data).getLastResponse();
         validateResponse(response, expectedStatusCode, testCase);
         validateSecurity(response, testCase);
         
