@@ -168,7 +168,7 @@ graph LR
 
 2. **Installation**
    ```bash
-   git clone https://github.com/yourusername/eReservations.git
+   git clone git@github.com:yogeshwankhede007/eReservations.git
    cd eReservations
    mvn clean install
    ```
